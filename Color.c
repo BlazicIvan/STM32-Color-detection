@@ -1,33 +1,3 @@
-/*
- * Project name:
-     Color click (Using mikroE's Color click board)
- * Copyright:
-     (c) MikroElektronika, 2013.
- * Revision History:
-     20130902:
-       - initial release (FJ);
- * Description:
-     This project is a simple demonstration of TCS3471 Digital Color Light Sensor with I2C Interface.
-     The detected color is written on the UART.
- * Test configuration:
-     MCU:             P32MX795F512L
-                      http://ww1.microchip.com/downloads/en/DeviceDoc/61156F.pdf
-     Dev.Board:       EasyPIC Fusion v7
-                      http://www.mikroe.com/easypic-fusion/
-     Oscillator:      XT-PLL, 80.000MHz
-     Ext. Modules:    Color click board  - ac:Color_Click
-                      http://www.mikroe.com/click/color/
-     SW:              mikroC PRO for PIC32
-                      http://www.mikroe.com/mikroc/pic32/
- * NOTES:
-     - Place Color click board in the mikroBUS socket 1 on the EasyPIC Fusion v7 board.
-     - Connect the USB cable to the USB UARTA A connector and turn on the USB UART A switches on SW12.
-     - To detect object's color, place it approximately 1 cm over the TCS3471 sensor.
-     - The RGB LED will light up the object and sensor will receive and interpret data.
-     - The deteced value will be written on the UART2.
-     - Example covers 8 colors - Orange, Red, Pink, Purple, Blue, Cyan, Green and Yellow.
- */
-
 #include <built_in.h>
 
 // TCS3471 registers definition
@@ -102,7 +72,10 @@ void Color_Write(unsigned short address, unsigned short data1) {
 // Read value from the TCS3471 Color sensor
 unsigned short Color_Read(unsigned short address) {
   unsigned short tmp = 0;
-
+  /*
+     Zameniti sa STM-ovim funkcijama
+  */
+  /*   
   I2C2_Start();                       // issue I2C start signal
   I2C2_Write(_COLOR_W_ADDRESS);       // send byte via I2C (device address + W)
   I2C2_Write(address);                // send byte (data address)
@@ -111,7 +84,7 @@ unsigned short Color_Read(unsigned short address) {
   I2C2_Write(_COLOR_R_ADDRESS);       // send byte (device address + R)
   tmp = I2C2_Read(_I2C_NACK);         // Read the data (NO acknowledge)
   I2C2_Stop();                        // issue I2C stop signal
-
+  */
   return tmp;
 }
 
@@ -217,12 +190,20 @@ float RGB_To_HSL(float red, float green, float blue) {
 
 // UART write text and new line (carriage return + line feed)
 void UART_Write_Line(char *uart_text) {
+  /*
+     Zameniti sa STM-ovim funkcijama
+  */
+  /*
   UART2_Write_Text(uart_text);
   UART2_Write(13);
   UART2_Write(10);
+  */
 }
 
 void main() {
+  /*   
+     Dodati inicijalizaciju za STM module
+  */  
   // Initialize pins as digital I/O
   AD1PCFG = 0xFFFF;
   JTAGEN_bit = 0;
