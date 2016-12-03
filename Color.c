@@ -1,4 +1,7 @@
-#include <built_in.h>
+//Sta da radimo sa ovim??
+//#include <built_in.h>
+#include "i2c.h"
+#include "stm32f10x.h"
 
 // TCS3471 registers definition
 #define _ENABLE  0x80    // Enable status and interrupts
@@ -45,6 +48,9 @@
 // Find minimal floating point value
 #define MIN_FLOAT(a, b) (((a) < (b)) ? (a) : (b))
 
+
+//Treba zameniti sbit deklaracije sa onim za STM
+/*
 // Color click module connections
 sbit RED_LED at LATB8_bit;
 sbit GREEN_LED at LATC2_bit;
@@ -53,6 +59,7 @@ sbit RED_LED_Direction at TRISB8_bit;
 sbit GREEN_LED_Direction at TRISC2_bit;
 sbit BLUE_LED_Direction at TRISD0_bit;
 // End of Color click module connections
+*/
 
 // Variable declaration
 char i, color_detected, color_flag;
@@ -60,21 +67,29 @@ unsigned int Clear, Red, Green, Blue;
 float hue, color_value, color_value_sum;
 float Red_Ratio, Green_Ratio, Blue_Ratio;
 
+
+
+
 // Write value into TCS3471 Color sensor
 void Color_Write(unsigned short address, unsigned short data1) {
-  I2C2_Start();                       // issue I2C start signal
-  I2C2_Write(_COLOR_W_ADDRESS);       // send byte via I2C  (device address + W)
-  I2C2_Write(address);                // send byte (address of the location)
-  I2C2_Write(data1);                  // send data (data to be written)
-  I2C2_Stop();                        // issue I2C stop signal
+	
+	I2C_Write(I2C1,&data1,1,address,_COLOR_W_ADDRESS); 
+	
+	/*	
+	  I2C2_Start();                       // issue I2C start signal
+	  I2C2_Write(_COLOR_W_ADDRESS);       // send byte via I2C  (device address + W)
+	  I2C2_Write(address);                // send byte (address of the location)
+	  I2C2_Write(data1);                  // send data (data to be written)
+	  I2C2_Stop();                        // issue I2C stop signal
+	*/
 }
 
 // Read value from the TCS3471 Color sensor
 unsigned short Color_Read(unsigned short address) {
   unsigned short tmp = 0;
-  /*
-     Zameniti sa STM-ovim funkcijama
-  */
+  
+  I2C_Read(I2C1,&tmp,1,address,_COLOR_R_ADDRESS);
+  
   /*   
   I2C2_Start();                       // issue I2C start signal
   I2C2_Write(_COLOR_W_ADDRESS);       // send byte via I2C (device address + W)
@@ -204,6 +219,8 @@ void main() {
   /*   
      Dodati inicijalizaciju za STM module
   */  
+  
+  
   // Initialize pins as digital I/O
   AD1PCFG = 0xFFFF;
   JTAGEN_bit = 0;
@@ -219,7 +236,8 @@ void main() {
   Turn_OFF_RGB_LEDs();
 
   // Initialize I2C2 module
-  I2C2_Init(400000);
+  I2C_LowLevel_Init(I2C1,400000, OwnAddress1);
+  //I2C2_Init(400000);
   Delay_ms(100);
   
   // Initialize TCS3471 Color Sensor
