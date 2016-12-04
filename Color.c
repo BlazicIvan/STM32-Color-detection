@@ -49,18 +49,6 @@
 #define MIN_FLOAT(a, b) (((a) < (b)) ? (a) : (b))
 
 
-//Treba zameniti sbit deklaracije sa onim za STM
-/*
-// Color click module connections
-sbit RED_LED at LATB8_bit;
-sbit GREEN_LED at LATC2_bit;
-sbit BLUE_LED at LATD0_bit;
-sbit RED_LED_Direction at TRISB8_bit;
-sbit GREEN_LED_Direction at TRISC2_bit;
-sbit BLUE_LED_Direction at TRISD0_bit;
-// End of Color click module connections
-*/
-
 // Variable declaration
 char i, color_detected, color_flag;
 unsigned int Clear, Red, Green, Blue;
@@ -146,6 +134,7 @@ unsigned int Color_Read_value(char reg) {
   }
 }
 
+/*
 // Configure RGB LEDs
 void Configure_RGB_LEDs() {
   // Set RGB LEDs as output
@@ -172,6 +161,8 @@ void Turn_OFF_RGB_LEDs() {
   GREEN_LED = 0;
   BLUE_LED = 0;
 }
+*/
+
 
 // Convert RGB values to HSL values
 float RGB_To_HSL(float red, float green, float blue) {
@@ -222,18 +213,21 @@ void main() {
   
   
   // Initialize pins as digital I/O
-  AD1PCFG = 0xFFFF;
-  JTAGEN_bit = 0;
+  //AD1PCFG = 0xFFFF;
+  //JTAGEN_bit = 0;
   
   // Initialize variables
   color_value_sum = 0;
   color_detected = 0;
 
+  /*
   // Configure RGB LEDs
   Configure_RGB_LEDs();
 
   // Turn OFF RGB LEDs
   Turn_OFF_RGB_LEDs();
+  */
+  
 
   // Initialize I2C2 module
   I2C_LowLevel_Init(I2C1,400000, OwnAddress1);
@@ -256,9 +250,11 @@ void main() {
 
   // Display message
   UART_Write_Line("Color Click Test Example");
-
+	
+  /*
   // Turn OFF RGB LEDs
   Turn_ON_RGB_LEDs();
+  */
   
   while(1) {
     // Reset Color value sum variable
