@@ -1,11 +1,11 @@
 #include "i2c.h"
+#include "stm32f10x_i2c.h"
 #include "stm32f10x.h"
-
 
 #define Timed(x) Timeout = 0xFFFF; while (x) \
 { if (Timeout -- == 0) goto errReturn ;}
 
-Status I2C_Write(I2C_TypeDef* I2Cx ,const uint8_t* buf ,uint32_t nbyte , uint8_t reg_address, uint8_t SlaveAddress) 
+int I2C_Write(I2C_TypeDef* I2Cx , uint8_t* buf ,uint32_t nbyte , uint8_t reg_address, uint8_t SlaveAddress) 
 {
 	I2Cx = I2C1;
 	__IO uint32_t Timeout = 0;
@@ -40,24 +40,24 @@ Status I2C_Write(I2C_TypeDef* I2Cx ,const uint8_t* buf ,uint32_t nbyte , uint8_t
 		I2C_GenerateSTOP(I2Cx , ENABLE);
 		Timed(I2C_GetFlagStatus(I2C1 , I2C_FLAG_STOPF));
 	}
-	return Success;
-	errReturn:
-	return Error;
+	return 0;
+	
+	errReturn: return -1;
 }
 
-Status I2C_Read(I2C_TypeDef* I2Cx ,uint8_t *buf ,uint32_t nbyte , uint8_t reg_address,uint8_t SlaveAddress) 
+int I2C_Read(I2C_TypeDef* I2Cx ,uint8_t *buf ,uint32_t nbyte , uint8_t reg_address,uint8_t SlaveAddress) 
 {
 	__IO uint32_t Timeout = 0;
 
 	if (! nbyte)
-	return Success;
+	return 0;
 
 	// Wait for idle I2C interface
 	Timed(I2C_GetFlagStatus(I2Cx , I2C_FLAG_BUSY));
 	
 	// Enable Acknowledgment , clear POS flag
 	I2C_AcknowledgeConfig(I2Cx , ENABLE);
-	I2C_NACKPositionConfig(I2Cx , I2C_NACKPosition_Current);
+	I2C_PECPositionConfig(I2Cx , I2C_NACKPosition_Current);
 	
 	// Intiate Start Sequence (wait for EV5)
 	I2C_GenerateSTART(I2Cx , ENABLE);
@@ -91,7 +91,7 @@ Status I2C_Read(I2C_TypeDef* I2Cx ,uint8_t *buf ,uint32_t nbyte , uint8_t reg_ad
 	else if (nbyte == 2) 
 	{
 		// Set POS flag
-		I2C_NACKPositionConfig(I2Cx , I2C_NACKPosition_Next);
+		I2C_PECPositionConfig(I2Cx , I2C_NACKPosition_Next);
 		
 		// EV6_1 -- must be atomic and in this order
 		__disable_irq ();
@@ -138,14 +138,13 @@ Status I2C_Read(I2C_TypeDef* I2Cx ,uint8_t *buf ,uint32_t nbyte , uint8_t reg_ad
 	// Wait for stop
 	Timed(I2C_GetFlagStatus(I2Cx , I2C_FLAG_STOPF));
 	
-	return Success;
+	return 0;
 	
-	errReturn:
-	return Error;
+	errReturn: return -1;
 }
 
 
-void I2C_LowLevel_Init(I2C_TypeDef* I2Cx ,int ClockSpeed , int OwnAddress)
+void I2C_LowLevel_Init(I2C_TypeDef* I2Cx ,int clockSpeed , int OwnAddress)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	I2C_InitTypeDef I2C_InitStructure;
@@ -174,9 +173,10 @@ void I2C_LowLevel_Init(I2C_TypeDef* I2Cx ,int ClockSpeed , int OwnAddress)
 	I2C_InitStructure.I2C_Mode = I2C_Mode_I2C;
 	I2C_InitStructure.I2C_DutyCycle = I2C_DutyCycle_2;
 	I2C_InitStructure.I2C_OwnAddress1 = OwnAddress;
-	I2C_InitStructure.I2C_Ack = I2C_Ack_Enable;
+	/* Iskljucen ack */
+	I2C_InitStructure.I2C_Ack = I2C_Ack_Disable;
 	I2C_InitStructure.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
-	I2C_InitStructure.I2C_ClockSpeed = ClockSpeed;
+	I2C_InitStructure.I2C_ClockSpeed = clockSpeed;
 	I2C_Init(I2Cx , &I2C_InitStructure);
 	I2C_Cmd(I2Cx , ENABLE);
 }

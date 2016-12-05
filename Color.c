@@ -1,7 +1,9 @@
-//Sta da radimo sa ovim??
-//#include <built_in.h>
-#include "i2c.h"
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include "stm32f10x.h"
+#include "stm32f10x_conf.h"
+#include "i2c.h"
 
 // TCS3471 registers definition
 #define _ENABLE  0x80    // Enable status and interrupts
@@ -55,11 +57,15 @@ unsigned int Clear, Red, Green, Blue;
 float hue, color_value, color_value_sum;
 float Red_Ratio, Green_Ratio, Blue_Ratio;
 
-
+void Delay_ms(uint16_t delay)
+{
+  delay *= 10;
+  while(delay--);
+}
 
 
 // Write value into TCS3471 Color sensor
-void Color_Write(unsigned short address, unsigned short data1) {
+void Color_Write(uint8_t address, uint8_t data1) {
 	
 	I2C_Write(I2C1,&data1,1,address,_COLOR_W_ADDRESS); 
 	
@@ -73,8 +79,8 @@ void Color_Write(unsigned short address, unsigned short data1) {
 }
 
 // Read value from the TCS3471 Color sensor
-unsigned short Color_Read(unsigned short address) {
-  unsigned short tmp = 0;
+unsigned short Color_Read(uint8_t address) {
+  uint8_t tmp = 0;
   
   I2C_Read(I2C1,&tmp,1,address,_COLOR_R_ADDRESS);
   
@@ -194,17 +200,7 @@ float RGB_To_HSL(float red, float green, float blue) {
   return hue;
 }
 
-// UART write text and new line (carriage return + line feed)
-void UART_Write_Line(char *uart_text) {
-  /*
-     Zameniti sa STM-ovim funkcijama
-  */
-  /*
-  UART2_Write_Text(uart_text);
-  UART2_Write(13);
-  UART2_Write(10);
-  */
-}
+
 
 void main() {
   /*   
@@ -232,7 +228,7 @@ void main() {
   // Initialize I2C2 module
   I2C_LowLevel_Init(I2C1,400000, OwnAddress1);
   //I2C2_Init(400000);
-  Delay_ms(100);
+  Delay_ms((uint16_t)100);
   
   // Initialize TCS3471 Color Sensor
   Color_Init();
@@ -244,8 +240,8 @@ void main() {
   // Set acquisition timer of 700 ms
   Color_Write(_ATIME, 0x00);
 
-  // Initialize UART2 module
-  UART2_Init(19200);
+  // Initialize UART1 module
+  USART1_init();
   Delay_ms(100);
 
   // Display message
