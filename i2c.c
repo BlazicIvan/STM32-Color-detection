@@ -40,7 +40,12 @@ void I2C1_Stop()
 
 void I2C1_Restart()
 {
-	I2C1_Start();
+	Timed(I2C_GetFlagStatus(I2C1 , I2C_FLAG_BUSY));
+	I2C_AcknowledgeConfig(I2C1 , ENABLE);
+	I2C_PECPositionConfig(I2C1 , I2C_NACKPosition_Current);
+	I2C_GenerateSTART(I2C1 , ENABLE);
+	Timed (! I2C_CheckEvent(I2C1 , I2C_EVENT_MASTER_MODE_SELECT));
+	errReturn: return;
 }
 
 uint8_t I2C1_Read()
@@ -228,7 +233,7 @@ void I2C1_LowLevel_Init(int clockSpeed , int OwnAddress)
 	I2C_InitStructure.I2C_DutyCycle = I2C_DutyCycle_2;
 	I2C_InitStructure.I2C_OwnAddress1 = OwnAddress;
 	/* Iskljucen ack */
-	I2C_InitStructure.I2C_Ack = I2C_Ack_Disable;
+	I2C_InitStructure.I2C_Ack = I2C_Ack_Enable;
 	I2C_InitStructure.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
 	I2C_InitStructure.I2C_ClockSpeed = clockSpeed;
 	I2C_Init(I2Cx , &I2C_InitStructure);

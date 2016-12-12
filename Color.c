@@ -98,13 +98,13 @@ unsigned short Color_Read(uint8_t address) {
 
 // Initialize TCS3471 Color sensor
 void Color_Init() {
-  Color_Write(_ENABLE, 0x1B);
+  Color_Write(_ENABLE, 0x0B);
 }
 
 // Read RGB values from the TCS3471 Color sensor
 unsigned int Color_Read_value(char reg) {
   unsigned short low_byte;
-  unsigned int Out_color;
+  uint16_t Out_color;
 
   switch(reg) {
     case 'C': low_byte = Color_Read(_CDATA);
@@ -225,7 +225,7 @@ void main() {
   
 
   // Initialize I2C2 module
-  I2C1_LowLevel_Init(400000, OwnAddress1);
+  I2C1_LowLevel_Init(200000, OwnAddress1);
   //I2C2_Init(400000);
   Delay_ms((uint16_t)100);
   
