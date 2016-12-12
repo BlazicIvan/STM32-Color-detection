@@ -83,6 +83,10 @@ void Color_Write(uint8_t address, uint8_t data1) {
 unsigned short Color_Read(uint8_t address) {
   uint8_t tmp = 0;
   
+  I2C_AcknowledgeConfig(I2C1 , ENABLE);
+  I2C_PECPositionConfig(I2C1 , I2C_NACKPosition_Current);
+  
+  
   I2C1_Start(); 
   I2C1_Write_Address(_COLOR_ADDRESS, I2C_Direction_Transmitter);
   I2C1_Write_Data(address);

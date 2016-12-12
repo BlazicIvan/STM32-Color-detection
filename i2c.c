@@ -2,50 +2,48 @@
 #include "stm32f10x_i2c.h"
 #include "stm32f10x.h"
 
-uint16_t Timeout;
 
-#define Timed(x) Timeout = 0xFFFF; while (x) \
-{ if (Timeout -- == 0) goto errReturn ;}
+
+#define Timed(x) while (x)
 
 void I2C1_Start()
 {
 	Timed(I2C_GetFlagStatus(I2C1 , I2C_FLAG_BUSY));
-	I2C_AcknowledgeConfig(I2C1 , ENABLE);
-	I2C_PECPositionConfig(I2C1 , I2C_NACKPosition_Current);
 	I2C_GenerateSTART(I2C1 , ENABLE);
 	Timed (! I2C_CheckEvent(I2C1 , I2C_EVENT_MASTER_MODE_SELECT));
-	errReturn: return;
+	//errReturn: return;
 }
 
 void I2C1_Write_Address(uint8_t address, uint8_t direction)
 {
 	I2C_Send7bitAddress(I2C1 , address<<1 , direction);
-	Timed (! I2C_CheckEvent(I2C1 ,I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
-	errReturn: return;
+        if(direction == I2C_Direction_Transmitter)
+          Timed (! I2C_CheckEvent(I2C1 ,I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+	else
+          Timed (! I2C_GetFlagStatus(I2C1 ,I2C_FLAG_ADDR));
+        //errReturn: return;
 }
 
 void I2C1_Write_Data(uint8_t data)
 {
 	I2C_SendData(I2C1 , data);
 	Timed (! I2C_GetFlagStatus(I2C1 , I2C_FLAG_BTF));
-	errReturn: return;
+	//errReturn: return;
 }
 
 void I2C1_Stop()
 {
 	I2C_GenerateSTOP(I2C1 , ENABLE);
 	Timed(I2C_GetFlagStatus(I2C1 , I2C_FLAG_STOPF));
-	errReturn: return;
+	//errReturn: return;
 }
 
 void I2C1_Restart()
 {
-	Timed(I2C_GetFlagStatus(I2C1 , I2C_FLAG_BUSY));
-	I2C_AcknowledgeConfig(I2C1 , ENABLE);
-	I2C_PECPositionConfig(I2C1 , I2C_NACKPosition_Current);
+	//I2C1_Start();
+        //Timed(I2C_GetFlagStatus(I2C1 , I2C_FLAG_BUSY));
 	I2C_GenerateSTART(I2C1 , ENABLE);
 	Timed (! I2C_CheckEvent(I2C1 , I2C_EVENT_MASTER_MODE_SELECT));
-	errReturn: return;
 }
 
 uint8_t I2C1_Read()
@@ -57,9 +55,9 @@ uint8_t I2C1_Read()
 	
 	/*
 	// EV6_1 -- must be atomic -- Clear ADDR , generate STOP
-	__disable_irq ();
+	__disable_irq ();*/
 	(void) I2C1 ->SR2;
-	I2C_GenerateSTOP(I2Cx ,ENABLE);
+	/*I2C_GenerateSTOP(I2Cx ,ENABLE);
 	__enable_irq ();
 	*/
 	
@@ -67,7 +65,7 @@ uint8_t I2C1_Read()
 	Timed (! I2C_GetFlagStatus(I2C1 , I2C_FLAG_RXNE));
 	return I2C_ReceiveData(I2C1);
 	
-	errReturn: return 0;
+	//errReturn: return 0;
 }
 /*
 int I2C_Write(I2C_TypeDef* I2Cx , uint8_t* buf ,uint32_t nbyte, uint8_t SlaveAddress) 
