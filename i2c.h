@@ -29,6 +29,7 @@ void I2C1_Write_Data(uint8_t data);
 void I2C1_Stop();
 void I2C1_Restart();
 void I2C1_LowLevel_Init(int clockSpeed , int OwnAddress);
+uint8_t I2C1_Read();
 
 
 #endif //I2C_H_

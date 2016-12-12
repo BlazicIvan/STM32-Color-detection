@@ -2,6 +2,8 @@
 #include "stm32f10x_i2c.h"
 #include "stm32f10x.h"
 
+uint16_t Timeout;
+
 #define Timed(x) Timeout = 0xFFFF; while (x) \
 { if (Timeout -- == 0) goto errReturn ;}
 
@@ -24,7 +26,7 @@ void I2C1_Write_Address(uint8_t address, uint8_t direction)
 
 void I2C1_Write_Data(uint8_t data)
 {
-	I2C_SendData(I2C1 , &data);
+	I2C_SendData(I2C1 , data);
 	Timed (! I2C_GetFlagStatus(I2C1 , I2C_FLAG_BTF));
 	errReturn: return;
 }
@@ -57,7 +59,7 @@ uint8_t I2C1_Read()
 	*/
 	
 	// Receive data EV7
-	Timed (! I2C_GetFlagStatus(I2Cx , I2C_FLAG_RXNE));
+	Timed (! I2C_GetFlagStatus(I2C1 , I2C_FLAG_RXNE));
 	return I2C_ReceiveData(I2C1);
 	
 	errReturn: return 0;

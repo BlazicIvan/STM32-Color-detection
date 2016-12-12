@@ -4,6 +4,7 @@
 #include "stm32f10x.h"
 #include "stm32f10x_conf.h"
 #include "i2c.h"
+#include "usart.h"
 
 // TCS3471 registers definition
 #define _ENABLE  0x80    // Enable status and interrupts
@@ -51,9 +52,6 @@
 // Find minimal floating point value
 #define MIN_FLOAT(a, b) (((a) < (b)) ? (a) : (b))
 
-#define Timed(x) Timeout = 0xFFFF; while (x) \
-{ if (Timeout -- == 0) goto errReturn ;}
-
 // Variable declaration
 char i, color_detected, color_flag;
 unsigned int Clear, Red, Green, Blue;
@@ -74,26 +72,26 @@ void Delay_ms(uint16_t delay)
 */
 void Color_Write(uint8_t address, uint8_t data1) {
 	
-	I2C2_Start();
-	I2C2_Write_Address(_COLOR_ADDRESS, I2C_Direction_Transmitter);
-	I2C2_Write_Data(address);
-	I2C2_Write_Data(data1);
-	I2C2_Stop();
+	I2C1_Start();
+	I2C1_Write_Address(_COLOR_ADDRESS, I2C_Direction_Transmitter);
+	I2C1_Write_Data(address);
+	I2C1_Write_Data(data1);
+	I2C1_Stop();
 }
 
 // Read value from the TCS3471 Color sensor
 unsigned short Color_Read(uint8_t address) {
   uint8_t tmp = 0;
   
-  I2C2_Start(); 
-  I2C2_Write_Address(_COLOR_ADDRESS, I2C_Direction_Transmitter);
-  I2C2_Write_Data(address);
+  I2C1_Start(); 
+  I2C1_Write_Address(_COLOR_ADDRESS, I2C_Direction_Transmitter);
+  I2C1_Write_Data(address);
 
-  I2C2_Restart(); 
+  I2C1_Restart(); 
 
-  I2C2_Write(_COLOR_ADDRESS,I2C_Direction_Receiver);
-  tmp = I2C2_Read(); // Izbacen parametar NACK
-  I2C2_Stop();
+  I2C1_Write_Address(_COLOR_ADDRESS,I2C_Direction_Receiver);
+  tmp = I2C1_Read(); // Izbacen parametar NACK
+  I2C1_Stop();
 
   return tmp;
 }
