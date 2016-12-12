@@ -19,9 +19,16 @@
 #define I2C_NACKPosition_Next   ((uint16_t)0x0800)
 #define I2C_NACKPosition_Current   ((uint16_t)0xF7FF)
 
+/*
 int I2C_Write(I2C_TypeDef* I2Cx ,uint8_t* buf ,uint32_t nbyte , uint8_t reg_address, uint8_t SlaveAddress);
 int I2C_Read(I2C_TypeDef* I2Cx ,uint8_t *buf ,uint32_t nbyte , uint8_t reg_address,uint8_t SlaveAddress);
-void I2C_LowLevel_Init(I2C_TypeDef* I2Cx ,int clockSpeed , int ownAddress);
+*/
+void I2C1_Start();
+void I2C1_Write_Address(uint8_t address, uint8_t direction);
+void I2C1_Write_Data(uint8_t data);
+void I2C1_Stop();
+void I2C1_Restart();
+void I2C1_LowLevel_Init(int clockSpeed , int OwnAddress);
 
 
 #endif //I2C_H_

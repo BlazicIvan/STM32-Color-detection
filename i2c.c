@@ -5,7 +5,65 @@
 #define Timed(x) Timeout = 0xFFFF; while (x) \
 { if (Timeout -- == 0) goto errReturn ;}
 
-int I2C_Write(I2C_TypeDef* I2Cx , uint8_t* buf ,uint32_t nbyte , uint8_t reg_address, uint8_t SlaveAddress) 
+void I2C1_Start()
+{
+	Timed(I2C_GetFlagStatus(I2C1 , I2C_FLAG_BUSY));
+	I2C_AcknowledgeConfig(I2C1 , ENABLE);
+	I2C_PECPositionConfig(I2C1 , I2C_NACKPosition_Current);
+	I2C_GenerateSTART(I2C1 , ENABLE);
+	Timed (! I2C_CheckEvent(I2C1 , I2C_EVENT_MASTER_MODE_SELECT));
+	errReturn: return;
+}
+
+void I2C1_Write_Address(uint8_t address, uint8_t direction)
+{
+	I2C_Send7bitAddress(I2C1 , address<<1 , direction);
+	Timed (! I2C_CheckEvent(I2C1 ,I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
+	errReturn: return;
+}
+
+void I2C1_Write_Data(uint8_t data)
+{
+	I2C_SendData(I2C1 , &data);
+	Timed (! I2C_GetFlagStatus(I2C1 , I2C_FLAG_BTF));
+	errReturn: return;
+}
+
+void I2C1_Stop()
+{
+	I2C_GenerateSTOP(I2C1 , ENABLE);
+	Timed(I2C_GetFlagStatus(I2C1 , I2C_FLAG_STOPF));
+	errReturn: return;
+}
+
+void I2C1_Restart()
+{
+	I2C1_Start();
+}
+
+uint8_t I2C1_Read()
+{
+	/*
+		Nema parametar NACK
+	*/
+	I2C_AcknowledgeConfig(I2C1 , DISABLE);
+	
+	/*
+	// EV6_1 -- must be atomic -- Clear ADDR , generate STOP
+	__disable_irq ();
+	(void) I2C1 ->SR2;
+	I2C_GenerateSTOP(I2Cx ,ENABLE);
+	__enable_irq ();
+	*/
+	
+	// Receive data EV7
+	Timed (! I2C_GetFlagStatus(I2Cx , I2C_FLAG_RXNE));
+	return I2C_ReceiveData(I2C1);
+	
+	errReturn: return 0;
+}
+/*
+int I2C_Write(I2C_TypeDef* I2Cx , uint8_t* buf ,uint32_t nbyte, uint8_t SlaveAddress) 
 {
 	I2Cx = I2C1;
 	__IO uint32_t Timeout = 0;
@@ -23,9 +81,6 @@ int I2C_Write(I2C_TypeDef* I2Cx , uint8_t* buf ,uint32_t nbyte , uint8_t reg_add
 		I2C_Send7bitAddress(I2Cx , SlaveAddress ,I2C_Direction_Transmitter);
 		Timed (! I2C_CheckEvent(I2Cx ,I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED));
 		
-		// Send register address
-		I2C_SendData(I2Cx , reg_address);
-		Timed (! I2C_GetFlagStatus(I2Cx , I2C_FLAG_BTF));
 		
 		// EV6 Write first byte EV8_1
 		I2C_SendData(I2Cx , *buf ++);
@@ -45,7 +100,7 @@ int I2C_Write(I2C_TypeDef* I2Cx , uint8_t* buf ,uint32_t nbyte , uint8_t reg_add
 	errReturn: return -1;
 }
 
-int I2C_Read(I2C_TypeDef* I2Cx ,uint8_t *buf ,uint32_t nbyte , uint8_t reg_address,uint8_t SlaveAddress) 
+int I2C_Read(I2C_TypeDef* I2Cx ,uint8_t *buf ,uint32_t nbyte,uint8_t SlaveAddress) 
 {
 	__IO uint32_t Timeout = 0;
 
@@ -68,10 +123,6 @@ int I2C_Read(I2C_TypeDef* I2Cx ,uint8_t *buf ,uint32_t nbyte , uint8_t reg_addre
 	
 	// EV6
 	Timed (! I2C_GetFlagStatus(I2Cx , I2C_FLAG_ADDR));
-	
-	// Send register address
-	I2C_SendData(I2Cx , reg_address);
-	Timed (! I2C_GetFlagStatus(I2Cx , I2C_FLAG_BTF));
 	
 	if (nbyte == 1) 
 	{
@@ -142,10 +193,11 @@ int I2C_Read(I2C_TypeDef* I2Cx ,uint8_t *buf ,uint32_t nbyte , uint8_t reg_addre
 	
 	errReturn: return -1;
 }
+*/
 
-
-void I2C_LowLevel_Init(I2C_TypeDef* I2Cx ,int clockSpeed , int OwnAddress)
+void I2C1_LowLevel_Init(int clockSpeed , int OwnAddress)
 {
+	I2C_TypeDef* I2Cx = I2C1;
 	GPIO_InitTypeDef GPIO_InitStructure;
 	I2C_InitTypeDef I2C_InitStructure;
 	

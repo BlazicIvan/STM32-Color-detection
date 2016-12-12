@@ -28,6 +28,7 @@
 #define _BDATAH  0x9B    // BLUE ADC high data register
 #define _COLOR_W_ADDRESS 0x52
 #define _COLOR_R_ADDRESS 0x53
+#define _COLOR_ADDRESS 	 0x29
 
 // Color flags
 #define PURPLE_FLAG 1
@@ -50,6 +51,8 @@
 // Find minimal floating point value
 #define MIN_FLOAT(a, b) (((a) < (b)) ? (a) : (b))
 
+#define Timed(x) Timeout = 0xFFFF; while (x) \
+{ if (Timeout -- == 0) goto errReturn ;}
 
 // Variable declaration
 char i, color_detected, color_flag;
@@ -65,35 +68,33 @@ void Delay_ms(uint16_t delay)
 
 
 // Write value into TCS3471 Color sensor
+/*
+	bit o - R/W (1/0)
+	bit 7..1 - Slave address
+*/
 void Color_Write(uint8_t address, uint8_t data1) {
 	
-	I2C_Write(I2C1,&data1,1,address,_COLOR_W_ADDRESS); 
-	
-	/*	
-	  I2C2_Start();                       // issue I2C start signal
-	  I2C2_Write(_COLOR_W_ADDRESS);       // send byte via I2C  (device address + W)
-	  I2C2_Write(address);                // send byte (address of the location)
-	  I2C2_Write(data1);                  // send data (data to be written)
-	  I2C2_Stop();                        // issue I2C stop signal
-	*/
+	I2C2_Start();
+	I2C2_Write_Address(_COLOR_ADDRESS, I2C_Direction_Transmitter);
+	I2C2_Write_Data(address);
+	I2C2_Write_Data(data1);
+	I2C2_Stop();
 }
 
 // Read value from the TCS3471 Color sensor
 unsigned short Color_Read(uint8_t address) {
   uint8_t tmp = 0;
   
-  I2C_Read(I2C1,&tmp,1,address,_COLOR_R_ADDRESS);
-  
-  /*   
-  I2C2_Start();                       // issue I2C start signal
-  I2C2_Write(_COLOR_W_ADDRESS);       // send byte via I2C (device address + W)
-  I2C2_Write(address);                // send byte (data address)
+  I2C2_Start(); 
+  I2C2_Write_Address(_COLOR_ADDRESS, I2C_Direction_Transmitter);
+  I2C2_Write_Data(address);
 
-  I2C2_Restart();                     // issue I2C signal repeated start
-  I2C2_Write(_COLOR_R_ADDRESS);       // send byte (device address + R)
-  tmp = I2C2_Read(_I2C_NACK);         // Read the data (NO acknowledge)
-  I2C2_Stop();                        // issue I2C stop signal
-  */
+  I2C2_Restart(); 
+
+  I2C2_Write(_COLOR_ADDRESS,I2C_Direction_Receiver);
+  tmp = I2C2_Read(); // Izbacen parametar NACK
+  I2C2_Stop();
+
   return tmp;
 }
 
@@ -226,7 +227,7 @@ void main() {
   
 
   // Initialize I2C2 module
-  I2C_LowLevel_Init(I2C1,400000, OwnAddress1);
+  I2C1_LowLevel_Init(400000, OwnAddress1);
   //I2C2_Init(400000);
   Delay_ms((uint16_t)100);
   
